@@ -14,9 +14,62 @@ repräsentiert, mit Methoden um
 - den Stapel wieder aufzufüllen und neu zu mischen
 - den Stapel abzuheben
 
+Anmerkung: Unter "abheben" habe ich folgendes verstanden -> man hebt die oberen x Karten ab und schiebt sie unter den Stapel.
+
 Was wäre hier wesentlich anders/komplizierter wenn Sie diese Klasse und Methoden 
 mit S3 oder S4 implementieren würden?
 
+Ich glaube wesentlich komplizierter wäre nur die `draw`-Methode, da es hier sowohl eine Änderung am Objekt selbst, als auch eine Rückgabe gibt.
+
+```{r, cards}
+library(R6)
+
+Cards <- R6Class(
+  "Cards",
+  public = list(
+    cards = list(),
+    size = 0,
+    initialize = function() {
+      farbe <- c("G", "H", "E", "S")
+      wert <- c(6:10, "U", "O", "K", "A")
+      cards <- paste0(rep(farbe, each = 9), rep(wert, times = 4))
+      self$cards <- sample(cards, 36)
+      self$size <- 36
+    },
+    draw = function(num_cards) {
+      if (typeof(num_cards) != "integer") stop("Please draw an integer amount of cards!")
+      if (num_cards > length(self$cards)) stop("You can't draw more cards than on the stack!")
+      print(paste("Drawing", num_cards, "cards randomly:"))
+      drawn_indices <- sample(self$size, num_cards)
+      drawn_cards <- self$cards[drawn_indices]
+      self$cards <- self$cards[-drawn_indices]
+      self$size <- self$size - num_cards
+      drawn_cards
+    },
+    reshuffle = function() {
+      print("Reshuffling deck")
+      self$initialize()
+    },
+    cut = function(num_cards) {
+      if (typeof(num_cards) != "integer") stop("Please cut an integer amount of cards!")
+      if (num_cards > length(self$cards)) stop("You can't cut more cards than on the stack!")
+      print(paste("Cutting", num_cards, "cards"))
+      cut_indices <- tail(seq_len(self$size), num_cards)
+      self$cards <- c(self$cards[cut_indices], self$cards[-cut_indices]) 
+    }
+  )
+)
+
+my_cards <- Cards$new()
+print(my_cards)
+drawn_cards <- my_cards$draw(10L)
+print(drawn_cards)
+print(my_cards$cards)
+my_cards$reshuffle()
+print(my_cards$cards)
+my_cards$cut(10L)
+print(my_cards$cards)
+```
 Hinweis
 ```r
 farbe <- c("G", "H", "E", "S")
